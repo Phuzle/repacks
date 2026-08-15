@@ -25,8 +25,13 @@ import com.phuzle.labs.repacks.core.AppContainer
 import com.phuzle.labs.repacks.data.prefs.UserPreferences
 import com.phuzle.labs.repacks.ui.AppViewModelProvider
 import com.phuzle.labs.repacks.ui.about.AboutScreen
+import com.phuzle.labs.repacks.ui.configure.AppearanceScreen
 import com.phuzle.labs.repacks.ui.configure.ConfigureScreen
 import com.phuzle.labs.repacks.ui.configure.ConfigureViewModel
+import com.phuzle.labs.repacks.ui.configure.FiltersWatchlistScreen
+import com.phuzle.labs.repacks.ui.configure.ProvidersScreen
+import com.phuzle.labs.repacks.ui.configure.SyncAntiBlockScreen
+import com.phuzle.labs.repacks.ui.configure.UpdatesScreen
 import com.phuzle.labs.repacks.ui.detail.DetailScreen
 import com.phuzle.labs.repacks.ui.detail.DetailViewModel
 import com.phuzle.labs.repacks.ui.feed.FeedScreen
@@ -40,7 +45,7 @@ fun RepacksApp(container: AppContainer, startDestination: String = Routes.FEED) 
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showBottomBar = currentRoute == Routes.FEED || currentRoute == Routes.CONFIGURE || currentRoute == Routes.ABOUT
+    val showBottomBar = currentRoute == Routes.FEED || currentRoute == Routes.CONFIGURE
 
     RepacksTheme(themeMode = prefs.themeMode) {
         Scaffold(
@@ -59,13 +64,31 @@ fun RepacksApp(container: AppContainer, startDestination: String = Routes.FEED) 
                     )
                 }
                 composable(Routes.CONFIGURE) {
-                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
-                    ConfigureScreen(
-                        viewModel = viewModel,
-                        onNavigateAbout = { navController.navigate(Routes.ABOUT) },
-                    )
+                    ConfigureScreen(onNavigate = { route -> navController.navigate(route) })
                 }
-                composable(Routes.ABOUT) { AboutScreen() }
+                composable(Routes.CONFIGURE_PROVIDERS) {
+                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
+                    ProvidersScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.CONFIGURE_FILTERS_WATCHLIST) {
+                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
+                    FiltersWatchlistScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.CONFIGURE_SYNC_ANTIBLOCK) {
+                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
+                    SyncAntiBlockScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.CONFIGURE_APPEARANCE) {
+                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
+                    AppearanceScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.CONFIGURE_UPDATES) {
+                    val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
+                    UpdatesScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.ABOUT) {
+                    AboutScreen(onBack = { navController.popBackStack() })
+                }
                 composable(
                     route = Routes.DETAIL_PATTERN,
                     arguments = listOf(
@@ -98,7 +121,7 @@ private fun RepacksBottomBar(navController: NavHostController, currentRoute: Str
             label = { Text("Feed") },
         )
         NavigationBarItem(
-            selected = currentRoute == Routes.CONFIGURE || currentRoute == Routes.ABOUT,
+            selected = currentRoute == Routes.CONFIGURE,
             onClick = {
                 navController.navigate(Routes.CONFIGURE) {
                     launchSingleTop = true

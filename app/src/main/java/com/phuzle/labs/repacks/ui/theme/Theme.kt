@@ -1,35 +1,55 @@
 package com.phuzle.labs.repacks.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import com.phuzle.labs.repacks.data.prefs.ThemeMode
 
-private val LightColors = lightColorScheme(
-    primary = RepacksPrimary,
-    secondary = RepacksSecondary,
-    tertiary = RepacksTertiary,
-    background = LightBackground,
-    surface = LightSurface,
+// Fixed neon-on-void palette — deliberately not Material You dynamic color (see Color.kt).
+private val VoidColors = darkColorScheme(
+    primary = NeonCyan,
+    onPrimary = VoidBlack,
+    secondary = NeonMagenta,
+    onSecondary = VoidBlack,
+    tertiary = NeonViolet,
+    onTertiary = VoidBlack,
+    error = NeonRed,
+    onError = VoidBlack,
+    background = VoidBlack,
+    onBackground = TextOnVoidPrimary,
+    surface = VoidSurface,
+    onSurface = TextOnVoidPrimary,
+    surfaceVariant = VoidSurfaceRaised,
+    onSurfaceVariant = TextOnVoidSecondary,
+    outline = VoidOutline,
 )
 
-private val DarkColors = darkColorScheme(
-    primary = RepacksPrimary,
-    secondary = RepacksSecondary,
-    tertiary = RepacksTertiary,
-    background = DarkBackground,
-    surface = DarkSurface,
-)
-
-private val AmoledColors = DarkColors.copy(
-    background = AmoledBackground,
+private val AmoledColors = VoidColors.copy(
+    background = AmoledBlack,
     surface = AmoledSurface,
+    surfaceVariant = AmoledSurface,
+    outline = AmoledOutline,
+)
+
+private val DaylightColors = lightColorScheme(
+    primary = Color(0xFF0086A8), // legible cyan-teal against a light ground
+    onPrimary = Color(0xFFFFFFFF),
+    secondary = Color(0xFFC81E68),
+    onSecondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF7A2FD1),
+    onTertiary = Color(0xFFFFFFFF),
+    error = Color(0xFFD1223D),
+    onError = Color(0xFFFFFFFF),
+    background = DaylightBackground,
+    onBackground = TextOnDaylightPrimary,
+    surface = DaylightSurface,
+    onSurface = TextOnDaylightPrimary,
+    surfaceVariant = DaylightSurfaceRaised,
+    onSurfaceVariant = TextOnDaylightSecondary,
+    outline = DaylightOutline,
 )
 
 @Composable
@@ -40,20 +60,16 @@ fun RepacksTheme(themeMode: ThemeMode, content: @Composable () -> Unit) {
         ThemeMode.LIGHT -> false
         ThemeMode.DARK_AMOLED -> true
     }
-    val context = LocalContext.current
-    val dynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
     val colorScheme = when {
         themeMode == ThemeMode.DARK_AMOLED -> AmoledColors
-        dynamicColorSupported && useDark -> dynamicDarkColorScheme(context)
-        dynamicColorSupported && !useDark -> dynamicLightColorScheme(context)
-        useDark -> DarkColors
-        else -> LightColors
+        useDark -> VoidColors
+        else -> DaylightColors
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = RepacksTypography,
+        shapes = RepacksShapes,
         content = content,
     )
 }

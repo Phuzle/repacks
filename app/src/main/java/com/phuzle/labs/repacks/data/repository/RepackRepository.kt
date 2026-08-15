@@ -14,9 +14,10 @@ import com.phuzle.labs.repacks.data.remote.providers.FeedParser
 import com.phuzle.labs.repacks.data.remote.providers.FeedProvider
 import com.phuzle.labs.repacks.data.remote.providers.ParsedRepackItem
 import com.phuzle.labs.repacks.data.remote.providers.RssFeedParser
-import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONArray
 
@@ -55,8 +56,15 @@ class RepackRepository(
     suspend fun setFavorited(id: Long, favorited: Boolean) = repackDao.setFavorited(id, favorited)
 
     /** Fetches every enabled provider, inserts genuinely-new items (diffed by guid), matches them
-     * against the watchlist, and runs the 30-day retention cleanup (PRD §7.3) — all in one pass. */
-    suspend fun sync(): SyncResult {
+     * against the watchlist, and runs the 30-day retention cleanup (PRD §7.3) — all in one pass.
+     *
+     * Runs entirely on [Dispatchers.IO]: callers (e.g. FeedViewModel.refresh(), via
+     * viewModelScope.launch) may be on Main, and OkHttp's Response — returned from
+     * RotatingCallFactory's own IO-dispatched call — still does real socket I/O when its body is
+     * read or, for an unread response (e.g. drained early after a non-2xx/304 check), when it's
+     * closed and has to reset the connection. Without this wrapper that showed up as a crash
+     * (NetworkOnMainThreadException) specifically on responses whose body was never read. */
+    suspend fun sync(): SyncResult = withContext(Dispatchers.IO) {
         val prefs = prefsRepository.current()
         val proxyConfigs = ProxyPool.parse(prefs.proxyList)
         val callFactory = RotatingCallFactory(context.cacheDir, proxyConfigs, prefs.autoRotateOnBlock)
@@ -96,9 +104,12 @@ class RepackRepository(
                         if (rowId != -1L) newlyInserted += entity.copy(id = rowId)
                     }
                 }
-            } catch (e: IOException) {
-                // This provider failed this cycle (network/still-blocked) — existing data stays
-                // put, next scheduled sync tries again.
+            } catch (e: Exception) {
+                // This provider failed this cycle (network error, still-blocked, or a malformed
+                // feed the parser couldn't recover from) — existing data stays put, other
+                // providers still get a chance to run, and the next scheduled sync tries again.
+                // Broad on purpose: a parser exception (e.g. XmlPullParserException, which is
+                // NOT an IOException) must not abort every remaining provider in this loop.
             }
         }
 
@@ -112,7 +123,7 @@ class RepackRepository(
         val watchlistMatchIds = watchlistMatches.mapTo(mutableSetOf()) { it.id }
         val otherNew = newlyInserted.filter { it.id !in watchlistMatchIds }
 
-        return SyncResult(watchlistMatches, otherNew, anyRateLimited)
+        SyncResult(watchlistMatches, otherNew, anyRateLimited)
     }
 
     private fun matchesWatchlist(entity: RepackEntity, keywords: List<String>): Boolean {

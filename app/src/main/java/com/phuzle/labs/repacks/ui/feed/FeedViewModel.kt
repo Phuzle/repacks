@@ -31,6 +31,9 @@ class FeedViewModel(
     private val _lastSyncedAt = MutableStateFlow<Long?>(null)
     val lastSyncedAt: StateFlow<Long?> = _lastSyncedAt
 
+    private val _syncError = MutableStateFlow<String?>(null)
+    val syncError: StateFlow<String?> = _syncError
+
     val visibleItems: StateFlow<List<RepackEntity>> = combine(
         repackRepository.observeFeed(),
         prefs,
@@ -62,10 +65,19 @@ class FeedViewModel(
             try {
                 repackRepository.sync()
                 _lastSyncedAt.value = System.currentTimeMillis()
+                _syncError.value = null
+            } catch (e: Exception) {
+                // A provider-level failure is already swallowed inside sync() — this only catches
+                // something unexpected (e.g. a local DB error), so refresh can never crash the app.
+                _syncError.value = "Refresh failed — check your connection and try again."
             } finally {
                 _isSyncing.value = false
             }
         }
+    }
+
+    fun dismissSyncError() {
+        _syncError.value = null
     }
 }
 

@@ -10,8 +10,16 @@ object DescriptionExtractor {
     private val GENRES_LINE_REGEX = Regex("(?im)^genres?(?:/tags)?[:\\-]\\s*(.+)$")
     private val NSFW_KEYWORDS = listOf("nsfw", "adult only", "hentai", "+18", "18+", "xxx")
 
-    fun extractBannerUrl(html: String): String? =
-        Jsoup.parse(html).select("img[src]").firstOrNull()?.attr("abs:src")?.takeIf { it.isNotBlank() }
+    /** [baseUri] (the item's own article URL) lets Jsoup resolve relative `src` values — without
+     * it, "abs:src" silently resolves against no base and produces a blank/broken URL. */
+    fun extractBannerUrl(html: String, baseUri: String): String? =
+        Jsoup.parse(html, baseUri).select("img[src]").firstOrNull()?.attr("abs:src")?.takeIf { it.isNotBlank() }
+
+    /** Some feeds (DODI's, at least) leak raw, invalidly-escaped HTML fragments (backslash-escaped
+     * quotes from a JS string literal) directly into the RSS XML outside any CDATA section, which
+     * breaks strict XML parsing entirely. Neither backslash-quote nor backslash-apostrophe is a
+     * legal XML escape, so stripping the stray backslashes is a safe normalization. */
+    fun sanitizeXml(raw: String): String = raw.replace("\\\"", "\"").replace("\\'", "'")
 
     fun extractPlainText(html: String): String = Jsoup.parse(html).text()
 

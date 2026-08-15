@@ -6,6 +6,7 @@ import java.io.StringReader
 import java.time.Instant
 import java.time.OffsetDateTime
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 
 /** Atom parser for KaOsKrew's release feed (PRD §6.1). */
 class AtomFeedParser : FeedParser {
@@ -13,7 +14,7 @@ class AtomFeedParser : FeedParser {
     override fun parse(body: String): List<ParsedRepackItem> {
         val parser = Xml.newPullParser().apply {
             setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
-            setInput(StringReader(body))
+            setInput(StringReader(DescriptionExtractor.sanitizeXml(body)))
         }
 
         val items = mutableListOf<ParsedRepackItem>()
@@ -28,48 +29,52 @@ class AtomFeedParser : FeedParser {
         var link = ""
         val categories = mutableListOf<String>()
 
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    currentTag = parser.name
-                    when (currentTag) {
-                        "entry" -> {
-                            insideEntry = true
-                            title = StringBuilder(); id = StringBuilder(); updated = StringBuilder(); content = StringBuilder()
-                            link = ""; categories.clear()
-                        }
-                        "link" -> if (insideEntry && link.isEmpty()) {
-                            link = parser.getAttributeValue(null, "href").orEmpty()
-                        }
-                        "category" -> if (insideEntry) {
-                            parser.getAttributeValue(null, "term")?.let(categories::add)
+        try {
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        currentTag = parser.name
+                        when (currentTag) {
+                            "entry" -> {
+                                insideEntry = true
+                                title = StringBuilder(); id = StringBuilder(); updated = StringBuilder(); content = StringBuilder()
+                                link = ""; categories.clear()
+                            }
+                            "link" -> if (insideEntry && link.isEmpty()) {
+                                link = parser.getAttributeValue(null, "href").orEmpty()
+                            }
+                            "category" -> if (insideEntry) {
+                                parser.getAttributeValue(null, "term")?.let(categories::add)
+                            }
                         }
                     }
-                }
-                XmlPullParser.TEXT -> if (insideEntry) {
-                    when (currentTag) {
-                        "title" -> title.append(parser.text)
-                        "id" -> id.append(parser.text)
-                        "updated", "published" -> updated.append(parser.text)
-                        "summary", "content" -> content.append(parser.text)
+                    XmlPullParser.TEXT -> if (insideEntry) {
+                        when (currentTag) {
+                            "title" -> title.append(parser.text)
+                            "id" -> id.append(parser.text)
+                            "updated", "published" -> updated.append(parser.text)
+                            "summary", "content" -> content.append(parser.text)
+                        }
                     }
-                }
-                XmlPullParser.END_TAG -> {
-                    if (parser.name == "entry" && insideEntry) {
-                        insideEntry = false
-                        buildEntry(
-                            title = title.toString().trim(),
-                            link = link,
-                            idRaw = id.toString().trim(),
-                            updatedRaw = updated.toString().trim(),
-                            contentHtml = content.toString().trim(),
-                            categories = categories.toList(),
-                        )?.let(items::add)
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "entry" && insideEntry) {
+                            insideEntry = false
+                            buildEntry(
+                                title = title.toString().trim(),
+                                link = link,
+                                idRaw = id.toString().trim(),
+                                updatedRaw = updated.toString().trim(),
+                                contentHtml = content.toString().trim(),
+                                categories = categories.toList(),
+                            )?.let(items::add)
+                        }
                     }
+                    else -> Unit
                 }
-                else -> Unit
+                eventType = parser.next()
             }
-            eventType = parser.next()
+        } catch (e: XmlPullParserException) {
+            // Return the items parsed so far instead of losing the whole feed.
         }
         return items
     }
@@ -91,7 +96,7 @@ class AtomFeedParser : FeedParser {
             guid = idRaw.ifEmpty { link },
             slug = DescriptionExtractor.slugify(slugSource),
             title = title,
-            bannerUrl = DescriptionExtractor.extractBannerUrl(contentHtml),
+            bannerUrl = DescriptionExtractor.extractBannerUrl(contentHtml, baseUri = link),
             originalUrl = link,
             originalSize = originalSize,
             repackSize = repackSize,

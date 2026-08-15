@@ -1,15 +1,14 @@
 package com.phuzle.labs.repacks.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,61 +25,61 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.phuzle.labs.repacks.data.local.RepackEntity
 import com.phuzle.labs.repacks.data.remote.providers.FeedProvider
+import com.phuzle.labs.repacks.ui.theme.accentForProvider
 import java.util.concurrent.TimeUnit
 
-/** One feed entry (PRD §4.2.1): 16:9 banner, provider badge, title, relative time, size, genres. */
+/** One feed entry (PRD §4.2.1), reworked as a HUD panel: neon accent border per provider, angular
+ * banner clip, uppercase provider badge, monospace-flavored meta line. */
 @Composable
 fun RepackCard(item: RepackEntity, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    val accent = accentForProvider(item.provider)
+    NeonPanel(
+        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
+        accent = accent,
+        contentPadding = PaddingValues(0.dp),
     ) {
-        Column {
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-                var loaded by remember(item.id) { mutableStateOf(false) }
-                if (!loaded) ShimmerBox(modifier = Modifier.fillMaxWidth())
-                AsyncImage(
-                    model = item.bannerUrl,
-                    contentDescription = item.title,
-                    modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Crop,
-                    onSuccess = { loaded = true },
-                    onError = { loaded = true },
-                )
-                val providerName = FeedProvider.fromId(item.provider)?.displayName ?: item.provider
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+            var loaded by remember(item.id) { mutableStateOf(false) }
+            if (!loaded) ShimmerBox(modifier = Modifier.fillMaxWidth())
+            AsyncImage(
+                model = item.bannerUrl,
+                contentDescription = item.title,
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.Crop,
+                onSuccess = { loaded = true },
+                onError = { loaded = true },
+            )
+            Text(
+                text = FeedProvider.fromId(item.provider)?.displayName?.uppercase() ?: item.provider.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(10.dp)
+                    .clip(NeonChipShape)
+                    .background(accent)
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+            )
+        }
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(modifier = Modifier.padding(top = 6.dp)) {
                 Text(
-                    text = providerName,
+                    text = relativeTime(item.timestamp).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = accent,
                 )
-            }
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(modifier = Modifier.padding(top = 4.dp)) {
+                item.repackSize?.let { size ->
                     Text(
-                        text = relativeTime(item.timestamp),
+                        text = "  //  $size",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    item.repackSize?.let { size ->
-                        Text(
-                            text = " • $size",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.phuzle.labs.repacks.ui.detail
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,23 +21,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.OpenInBrowser
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +43,12 @@ import coil3.compose.AsyncImage
 import com.phuzle.labs.repacks.data.local.RepackEntity
 import com.phuzle.labs.repacks.data.remote.providers.FeedProvider
 import com.phuzle.labs.repacks.data.remote.providers.SizeUnits
+import com.phuzle.labs.repacks.ui.components.HudBackdrop
+import com.phuzle.labs.repacks.ui.components.NeonChipShape
+import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.components.relativeTime
+import com.phuzle.labs.repacks.ui.theme.RepacksShapes
+import com.phuzle.labs.repacks.ui.theme.accentForProvider
 import org.json.JSONArray
 
 @Composable
@@ -51,100 +56,146 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit) {
     val item by viewModel.item.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val current = item
+    val accent = current?.let { accentForProvider(it.provider) } ?: MaterialTheme.colorScheme.primary
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (current != null) {
                 val providerName = FeedProvider.fromId(current.provider)?.displayName ?: current.provider
-                Surface(shadowElevation = 8.dp) {
-                    Button(
-                        onClick = {
-                            CustomTabsIntent.Builder().build().launchUrl(context, current.originalUrl.toUri())
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                Surface(color = MaterialTheme.colorScheme.background, shadowElevation = 8.dp) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .clip(RepacksShapes.medium)
+                            .background(accent)
+                            .clickable {
+                                CustomTabsIntent.Builder().build().launchUrl(context, current.originalUrl.toUri())
+                            }
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
                     ) {
-                        Icon(Icons.Filled.OpenInBrowser, contentDescription = null)
-                        Text(" Open on $providerName", modifier = Modifier.padding(start = 4.dp))
+                        Icon(Icons.Filled.OpenInBrowser, contentDescription = null, tint = MaterialTheme.colorScheme.background)
+                        Text(
+                            text = "OPEN ON ${providerName.uppercase()}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.background,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
                     }
                 }
             }
         },
     ) { padding ->
         if (current == null) return@Scaffold
-        Column(modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-                AsyncImage(
-                    model = current.bannerUrl,
-                    contentDescription = current.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-                Box(
-                    modifier = Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)),
-                            startY = 0f,
+        HudBackdrop(modifier = Modifier.padding(padding)) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+                    AsyncImage(
+                        model = current.bannerUrl,
+                        contentDescription = current.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize().background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
+                                startY = 0f,
+                            ),
                         ),
-                    ),
-                )
-                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.TopStart).padding(8.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    )
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                            .clip(NeonChipShape)
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = accent)
+                    }
+                    Text(
+                        text = current.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
+                    )
                 }
-                Text(
-                    text = current.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
-                )
-            }
 
-            MetadataGrid(current)
+                MetadataGrid(current, accent)
 
-            val genres = parseGenres(current.genres)
-            if (genres.isNotEmpty()) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(genres) { genre -> SuggestionChip(onClick = {}, label = { Text(genre) }) }
+                val genres = parseGenres(current.genres)
+                if (genres.isNotEmpty()) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(genres) { genre ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(NeonChipShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                            ) {
+                                Text(
+                                    text = genre.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 }
-            }
 
-            current.description?.let { description ->
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp),
-                )
-            }
+                current.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
 
-            // Room for the fixed bottom CTA button.
-            Box(modifier = Modifier.fillMaxWidth().size(72.dp))
+                // Room for the fixed bottom CTA button.
+                Box(modifier = Modifier.fillMaxWidth().size(72.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun MetadataGrid(item: RepackEntity) {
+private fun MetadataGrid(item: RepackEntity, accent: Color) {
     val reduction = reductionPercent(item.originalSize, item.repackSize)
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            MetadataStat(label = "Repack Size", value = item.repackSize ?: "—", modifier = Modifier.weight(1f))
-            MetadataStat(label = "Original Size", value = item.originalSize ?: "—", modifier = Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MetadataStat("REPACK SIZE", item.repackSize ?: "—", accent, Modifier.weight(1f))
+            MetadataStat("ORIGINAL SIZE", item.originalSize ?: "—", accent, Modifier.weight(1f))
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            MetadataStat(label = "Reduction", value = reduction?.let { "$it%" } ?: "—", modifier = Modifier.weight(1f))
-            MetadataStat(label = "Released", value = relativeTime(item.timestamp), modifier = Modifier.weight(1f))
+        Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            MetadataStat("REDUCTION", reduction?.let { "$it%" } ?: "—", accent, Modifier.weight(1f))
+            MetadataStat("RELEASED", relativeTime(item.timestamp).uppercase(), accent, Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun MetadataStat(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
+private fun MetadataStat(label: String, value: String, accent: Color, modifier: Modifier = Modifier) {
+    NeonPanel(
+        modifier = modifier.height(74.dp),
+        accent = accent,
+        shape = MaterialTheme.shapes.small,
+        contentPadding = PaddingValues(12.dp),
+        glow = false,
+    ) {
         Text(text = value, style = MaterialTheme.typography.titleMedium)
-        Text(text = label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
     }
 }
 

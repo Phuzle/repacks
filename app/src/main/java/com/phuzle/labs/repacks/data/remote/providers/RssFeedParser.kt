@@ -6,6 +6,7 @@ import java.io.StringReader
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 
 /** RSS 2.0 parser (FitGirl, DODI, SteamRIP per PRD §6.1) using Android's built-in XmlPullParser,
  * with [DescriptionExtractor] cleaning up each item's HTML description. */
@@ -14,7 +15,7 @@ class RssFeedParser : FeedParser {
     override fun parse(body: String): List<ParsedRepackItem> {
         val parser = Xml.newPullParser().apply {
             setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
-            setInput(StringReader(body))
+            setInput(StringReader(DescriptionExtractor.sanitizeXml(body)))
         }
 
         val items = mutableListOf<ParsedRepackItem>()
@@ -30,47 +31,54 @@ class RssFeedParser : FeedParser {
         var categoryBuffer = StringBuilder()
         val categories = mutableListOf<String>()
 
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    currentTag = parser.name
-                    if (currentTag == "item") {
-                        insideItem = true
-                        title = StringBuilder(); link = StringBuilder(); guid = StringBuilder()
-                        pubDate = StringBuilder(); description = StringBuilder()
-                        categories.clear()
+        // Wrapped defensively: some feeds (DODI's, at least) leak malformed markup that can trip
+        // up even a sanitized parse. Rather than lose every item from a provider over one bad
+        // item, this returns whatever was already parsed up to the failure point.
+        try {
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        currentTag = parser.name
+                        if (currentTag == "item") {
+                            insideItem = true
+                            title = StringBuilder(); link = StringBuilder(); guid = StringBuilder()
+                            pubDate = StringBuilder(); description = StringBuilder()
+                            categories.clear()
+                        }
+                        if (currentTag == "category") categoryBuffer = StringBuilder()
                     }
-                    if (currentTag == "category") categoryBuffer = StringBuilder()
+                    XmlPullParser.TEXT -> if (insideItem) {
+                        when (currentTag) {
+                            "title" -> title.append(parser.text)
+                            "link" -> link.append(parser.text)
+                            "guid" -> guid.append(parser.text)
+                            "pubDate" -> pubDate.append(parser.text)
+                            "description", "content:encoded" -> description.append(parser.text)
+                            "category" -> categoryBuffer.append(parser.text)
+                        }
+                    }
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "category" && insideItem) {
+                            categoryBuffer.toString().trim().takeIf { it.isNotEmpty() }?.let(categories::add)
+                        }
+                        if (parser.name == "item" && insideItem) {
+                            insideItem = false
+                            buildItem(
+                                title = title.toString().trim(),
+                                link = link.toString().trim(),
+                                guidRaw = guid.toString().trim(),
+                                pubDateRaw = pubDate.toString().trim(),
+                                descriptionHtml = description.toString().trim(),
+                                categories = categories.toList(),
+                            )?.let(items::add)
+                        }
+                    }
+                    else -> Unit
                 }
-                XmlPullParser.TEXT -> if (insideItem) {
-                    when (currentTag) {
-                        "title" -> title.append(parser.text)
-                        "link" -> link.append(parser.text)
-                        "guid" -> guid.append(parser.text)
-                        "pubDate" -> pubDate.append(parser.text)
-                        "description", "content:encoded" -> description.append(parser.text)
-                        "category" -> categoryBuffer.append(parser.text)
-                    }
-                }
-                XmlPullParser.END_TAG -> {
-                    if (parser.name == "category" && insideItem) {
-                        categoryBuffer.toString().trim().takeIf { it.isNotEmpty() }?.let(categories::add)
-                    }
-                    if (parser.name == "item" && insideItem) {
-                        insideItem = false
-                        buildItem(
-                            title = title.toString().trim(),
-                            link = link.toString().trim(),
-                            guidRaw = guid.toString().trim(),
-                            pubDateRaw = pubDate.toString().trim(),
-                            descriptionHtml = description.toString().trim(),
-                            categories = categories.toList(),
-                        )?.let(items::add)
-                    }
-                }
-                else -> Unit
+                eventType = parser.next()
             }
-            eventType = parser.next()
+        } catch (e: XmlPullParserException) {
+            // Return the items parsed so far instead of losing the whole feed.
         }
         return items
     }
@@ -92,7 +100,7 @@ class RssFeedParser : FeedParser {
             guid = guidRaw.ifEmpty { link },
             slug = DescriptionExtractor.slugify(slugSource),
             title = title,
-            bannerUrl = DescriptionExtractor.extractBannerUrl(descriptionHtml),
+            bannerUrl = DescriptionExtractor.extractBannerUrl(descriptionHtml, baseUri = link),
             originalUrl = link,
             originalSize = originalSize,
             repackSize = repackSize,
