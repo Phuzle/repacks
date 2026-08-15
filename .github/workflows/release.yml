@@ -14,6 +14,8 @@ permissions:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    env:
+      HAS_SIGNING_SECRET: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,7 +44,7 @@ jobs:
       # back to an unsigned release APK (see app/build.gradle.kts's hasReleaseSigning) rather than
       # failing outright, so this workflow works before anyone's set up a signing key.
       - name: Decode release keystore
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_SIGNING_SECRET == 'true'
         run: |
           echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "${{ runner.temp }}/release.keystore"
           echo "RELEASE_KEYSTORE_PATH=${{ runner.temp }}/release.keystore" >> "$GITHUB_ENV"
