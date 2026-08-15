@@ -23,6 +23,8 @@ data class UserPreferences(
         get() = proxyListRaw.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
 
     companion object {
-        val DEFAULT_ENABLED_PROVIDERS = setOf("fitgirl", "dodi", "steamrip", "kaoskrew")
+        // "kaoskrew" is left out here since that provider is currently disabled — see
+        // data/remote/providers/FeedProvider.kt.
+        val DEFAULT_ENABLED_PROVIDERS = setOf("fitgirl", "dodi", "steamrip")
     }
 }
