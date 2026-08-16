@@ -32,7 +32,7 @@ fun AppearanceScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize()) {
                 HudTopBar(title = "Appearance", onBack = onBack, accent = accent)
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent) {
                     Text("Theme", style = MaterialTheme.typography.bodyLarge)
                     listOf(
                         ThemeMode.SYSTEM to "System",

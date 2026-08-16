@@ -28,9 +28,6 @@ class FeedViewModel(
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing
 
-    private val _lastSyncedAt = MutableStateFlow<Long?>(null)
-    val lastSyncedAt: StateFlow<Long?> = _lastSyncedAt
-
     private val _syncError = MutableStateFlow<String?>(null)
     val syncError: StateFlow<String?> = _syncError
 
@@ -64,7 +61,6 @@ class FeedViewModel(
             _isSyncing.value = true
             try {
                 repackRepository.sync()
-                _lastSyncedAt.value = System.currentTimeMillis()
                 _syncError.value = null
             } catch (e: Exception) {
                 // A provider-level failure is already swallowed inside sync() — this only catches

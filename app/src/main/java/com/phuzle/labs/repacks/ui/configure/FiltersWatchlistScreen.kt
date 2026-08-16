@@ -60,7 +60,7 @@ fun FiltersWatchlistScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
                 HudTopBar(title = "Filters & Watchlist", onBack = onBack, accent = accent)
 
                 HudSectionLabel("Filter Engine", accent = accent, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent) {
                     ToggleRow(
                         label = "Filter adult / NSFW content",
                         checked = prefs.nsfwFilterEnabled,

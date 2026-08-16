@@ -193,7 +193,6 @@ private fun MetadataStat(label: String, value: String, accent: Color, modifier: 
         accent = accent,
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(12.dp),
-        glow = false,
     ) {
         Text(text = value, style = MaterialTheme.typography.titleMedium)
         Text(

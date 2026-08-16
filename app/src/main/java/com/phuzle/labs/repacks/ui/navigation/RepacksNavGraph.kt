@@ -18,9 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,16 +38,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.phuzle.labs.repacks.core.AppContainer
 import com.phuzle.labs.repacks.data.prefs.UserPreferences
 import com.phuzle.labs.repacks.ui.AppViewModelProvider
 import com.phuzle.labs.repacks.ui.about.AboutScreen
-import com.phuzle.labs.repacks.ui.components.HudBottomBar
-import com.phuzle.labs.repacks.ui.components.HudBottomBarItem
-import com.phuzle.labs.repacks.ui.components.NeonChipShape
 import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.configure.AppearanceScreen
 import com.phuzle.labs.repacks.ui.configure.ConfigureScreen
@@ -68,19 +62,14 @@ import com.phuzle.labs.repacks.ui.theme.RepacksTheme
 import com.phuzle.labs.repacks.ui.theme.themedAccent
 import com.phuzle.labs.repacks.updater.UpdateInfo
 
-private val bottomBarItems = listOf(
-    HudBottomBarItem(Routes.FEED, "Feed", Icons.Filled.Home),
-    HudBottomBarItem(Routes.CONFIGURE, "Configure", Icons.Filled.Settings),
-)
-
+/** No bottom nav — Feed is the app's home screen, and Settings (Configure) is reached via the
+ * gear icon in its header and returned from with the system/HUD back button, like every other
+ * pushed screen. */
 @Composable
 fun RepacksApp(container: AppContainer, startDestination: String = Routes.FEED) {
     val prefs by container.userPreferencesRepository.preferencesFlow
         .collectAsStateWithLifecycle(initialValue = UserPreferences())
     val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
-    val showBottomBar = currentRoute == Routes.FEED || currentRoute == Routes.CONFIGURE
 
     var updateAvailable by remember { mutableStateOf<UpdateInfo?>(null) }
     LaunchedEffect(prefs.autoUpdateCheckEnabled) {
@@ -91,22 +80,7 @@ fun RepacksApp(container: AppContainer, startDestination: String = Routes.FEED) 
 
     RepacksTheme(themeMode = prefs.themeMode) {
         Box(Modifier.fillMaxSize()) {
-            Scaffold(
-                bottomBar = {
-                    if (showBottomBar) {
-                        HudBottomBar(
-                            items = bottomBarItems,
-                            selectedRoute = currentRoute,
-                            onSelect = { route ->
-                                navController.navigate(route) {
-                                    launchSingleTop = true
-                                    popUpTo(Routes.FEED) { inclusive = route == Routes.FEED }
-                                }
-                            },
-                        )
-                    }
-                },
-            ) { padding ->
+            Scaffold { padding ->
                 NavHost(
                     navController = navController,
                     startDestination = startDestination,
@@ -121,10 +95,14 @@ fun RepacksApp(container: AppContainer, startDestination: String = Routes.FEED) 
                         FeedScreen(
                             viewModel = viewModel,
                             onItemClick = { provider, slug -> navController.navigate(Routes.detail(provider, slug)) },
+                            onSettingsClick = { navController.navigate(Routes.CONFIGURE) },
                         )
                     }
                     composable(Routes.CONFIGURE) {
-                        ConfigureScreen(onNavigate = { route -> navController.navigate(route) })
+                        ConfigureScreen(
+                            onNavigate = { route -> navController.navigate(route) },
+                            onBack = { navController.popBackStack() },
+                        )
                     }
                     composable(Routes.CONFIGURE_PROVIDERS) {
                         val viewModel: ConfigureViewModel = viewModel(factory = AppViewModelProvider.configureFactory(container))
@@ -200,7 +178,6 @@ private fun UpdateAvailableBanner(
         modifier = modifier.fillMaxWidth().clickable(onClick = onOpen),
         accent = accent,
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-        glow = true,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Filled.NewReleases, contentDescription = null, tint = accent, modifier = Modifier.height(20.dp))

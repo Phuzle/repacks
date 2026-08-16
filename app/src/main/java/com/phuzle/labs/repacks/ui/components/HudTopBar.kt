@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/** Shared back-button + glowing HUD title used by every Configure sub-screen. */
+/** Shared back-button + title used by every pushed sub-screen (Configure's categories, About). */
 @Composable
 fun HudTopBar(
     title: String,

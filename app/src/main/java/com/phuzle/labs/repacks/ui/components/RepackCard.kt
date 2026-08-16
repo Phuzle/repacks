@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,26 +32,33 @@ import com.phuzle.labs.repacks.data.remote.providers.FeedProvider
 import com.phuzle.labs.repacks.ui.theme.accentForProvider
 import java.util.concurrent.TimeUnit
 
-/** One feed entry (PRD §4.2.1), reworked as a HUD panel: neon accent border per provider, angular
- * banner clip, uppercase provider badge, monospace-flavored meta line. */
+/** One feed entry (PRD §4.2.1). Full-bleed edge-to-edge row — no bordered box — separated from its
+ * neighbors by a hairline divider; the banner image fades into the card's own surface color at the
+ * bottom instead of a hard cut, and the provider's color shows up only as the badge + accent-tinted
+ * meta text, not a full glowing border. */
 @Composable
 fun RepackCard(item: RepackEntity, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val accent = accentForProvider(item.provider)
-    NeonPanel(
-        modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-        accent = accent,
-        contentPadding = PaddingValues(0.dp),
-    ) {
+    val surfaceColor = MaterialTheme.colorScheme.surface
+
+    Column(modifier = modifier.fillMaxWidth().background(surfaceColor).clickable(onClick = onClick)) {
         Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
             var loaded by remember(item.id) { mutableStateOf(false) }
             if (!loaded) ShimmerBox(modifier = Modifier.fillMaxWidth())
             AsyncImage(
                 model = item.bannerUrl,
                 contentDescription = item.title,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 onSuccess = { loaded = true },
                 onError = { loaded = true },
+            )
+            Box(
+                modifier = Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(0f to Color.Transparent, 0.6f to Color.Transparent, 1f to surfaceColor),
+                    ),
+                ),
             )
             Text(
                 text = FeedProvider.fromId(item.provider)?.displayName?.uppercase() ?: item.provider.uppercase(),
@@ -61,7 +72,7 @@ fun RepackCard(item: RepackEntity, onClick: () -> Unit, modifier: Modifier = Mod
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             )
         }
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -83,6 +94,7 @@ fun RepackCard(item: RepackEntity, onClick: () -> Unit, modifier: Modifier = Mod
                 }
             }
         }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
     }
 }
 

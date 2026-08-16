@@ -42,9 +42,15 @@ val TextOnVoidSecondary = Color(0xFF8A90B8)
 val TextOnDaylightPrimary = Color(0xFF12132B)
 val TextOnDaylightSecondary = Color(0xFF585E82)
 
-/** Deterministic accent per provider id, used for card borders/badges (RepackCard, DetailScreen). */
-private val darkProviderAccents = listOf(NeonCyan, NeonMagenta, NeonViolet, NeonAcid)
-private val lightProviderAccents = listOf(NeonCyanOnLight, NeonMagentaOnLight, NeonVioletOnLight, NeonAcidOnLight)
+/** Explicit, stable accent per known provider id — deliberate rather than hash-derived, so each
+ * source's color-coding is intentional and doesn't shift if the provider list changes. Falls back
+ * to cyan for anything unrecognized. */
+private val providerAccents: Map<String, Pair<Color, Color>> = mapOf(
+    "fitgirl" to (NeonMagenta to NeonMagentaOnLight),
+    "dodi" to (NeonCyan to NeonCyanOnLight),
+    "steamrip" to (NeonViolet to NeonVioletOnLight),
+    "kaoskrew" to (NeonAcid to NeonAcidOnLight),
+)
 
 /** True when the current color scheme's background is light (i.e. Light theme, not
  * Void/AMOLED dark) — used to pick a readable accent variant instead of assuming dark mode. */
@@ -58,7 +64,6 @@ fun themedAccent(dark: Color, light: Color): Color = if (isLightSurface()) light
 
 @Composable
 fun accentForProvider(providerId: String): Color {
-    val palette = if (isLightSurface()) lightProviderAccents else darkProviderAccents
-    val index = providerId.fold(0) { acc, c -> acc + c.code }
-    return palette[index % palette.size]
+    val (dark, light) = providerAccents[providerId] ?: (NeonCyan to NeonCyanOnLight)
+    return themedAccent(dark, light)
 }

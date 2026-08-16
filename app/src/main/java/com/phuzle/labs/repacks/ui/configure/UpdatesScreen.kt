@@ -38,7 +38,7 @@ fun UpdatesScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize()) {
                 HudTopBar(title = "Updates", onBack = onBack, accent = accent)
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent) {
                     Text("Current version", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.titleMedium)
 

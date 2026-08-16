@@ -48,7 +48,7 @@ fun ProvidersScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
                 ) {
                     items(FeedProvider.entries) { provider ->
                         val accent = accentForProvider(provider.id)
-                        NeonPanel(modifier = Modifier.fillMaxWidth(), accent = accent, glow = false) {
+                        NeonPanel(modifier = Modifier.fillMaxWidth(), accent = accent) {
                             ToggleRow(
                                 label = provider.displayName,
                                 checked = provider.id in prefs.enabledProviderIds,

@@ -1,7 +1,9 @@
 package com.phuzle.labs.repacks.ui.feed
 
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,8 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,18 +43,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.phuzle.labs.repacks.ui.components.FilterChipsRow
 import com.phuzle.labs.repacks.ui.components.HudBackdrop
 import com.phuzle.labs.repacks.ui.components.RepackCard
-import com.phuzle.labs.repacks.ui.components.relativeTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel,
     onItemClick: (provider: String, slug: String) -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     val items by viewModel.visibleItems.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
-    val lastSyncedAt by viewModel.lastSyncedAt.collectAsStateWithLifecycle()
     val syncError by viewModel.syncError.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -80,19 +78,18 @@ fun FeedScreen(
         HudBackdrop(modifier = Modifier.padding(scaffoldPadding)) {
             PullToRefreshBox(isRefreshing = isSyncing, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
                 Column(Modifier.fillMaxSize()) {
-                    FeedHeader(lastSyncedAt = lastSyncedAt, isSyncing = isSyncing, onRefresh = viewModel::refresh)
+                    FeedHeader(isSyncing = isSyncing, onSettingsClick = onSettingsClick)
                     FilterChipsRow(
                         selected = filter,
                         onSelect = viewModel::setFilter,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
                     )
                     if (items.isEmpty()) {
                         EmptyFeedState()
                     } else {
                         LazyColumn(
                             modifier = Modifier.weight(1f),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp),
                         ) {
                             items(items, key = { it.id }) { item ->
                                 RepackCard(
@@ -110,7 +107,7 @@ fun FeedScreen(
 }
 
 @Composable
-private fun FeedHeader(lastSyncedAt: Long?, isSyncing: Boolean, onRefresh: () -> Unit) {
+private fun FeedHeader(isSyncing: Boolean, onSettingsClick: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "syncPulse")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.35f,
@@ -120,50 +117,30 @@ private fun FeedHeader(lastSyncedAt: Long?, isSyncing: Boolean, onRefresh: () ->
     )
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .width(8.dp)
-                        .height(8.dp)
-                        .alpha(if (isSyncing) pulseAlpha else 1f)
-                        .background(
-                            if (isSyncing) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(2.dp),
-                        ),
-                )
-                Text(
-                    text = "REPACKS",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(8.dp)
+                    .alpha(if (isSyncing) pulseAlpha else 1f)
+                    .background(
+                        if (isSyncing) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(2.dp),
+                    ),
+            )
             Text(
-                text = when {
-                    isSyncing -> "SYNCING…"
-                    lastSyncedAt != null -> "LAST SYNC ${relativeTime(lastSyncedAt).uppercase()}"
-                    else -> "PULL TO REFRESH"
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 1.dp),
+                text = "REPACKS",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
-        if (isSyncing) {
-            CircularProgressIndicator(
-                modifier = Modifier.padding(8.dp).width(20.dp).height(20.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        } else {
-            IconButton(onClick = onRefresh) {
-                Icon(Icons.Filled.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.primary)
-            }
+        IconButton(onClick = onSettingsClick) {
+            Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -178,7 +155,7 @@ private fun EmptyFeedState() {
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "Pull to refresh, or check Configure → Providers",
+                text = "Pull to refresh, or check Settings → Providers",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),

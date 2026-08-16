@@ -1,16 +1,15 @@
 package com.phuzle.labs.repacks.ui.theme
 
-import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-/** HUD-panel shapes: corners cut diagonally instead of rounded — the single biggest lever for
- * moving this app's shape language away from "stock Material". CutCornerShape is a
- * CornerBasedShape, which is what Material3's Shapes() requires for theme-wide defaults. */
+// Plain rounded corners — the earlier cut-corner "HUD" shapes read as an aggressive neon-cyberpunk
+// affectation rather than a real design, so every surface in the app now uses this shared scale.
 val RepacksShapes = Shapes(
-    extraSmall = CutCornerShape(4.dp),
-    small = CutCornerShape(8.dp),
-    medium = CutCornerShape(14.dp),
-    large = CutCornerShape(20.dp),
-    extraLarge = CutCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(14.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )

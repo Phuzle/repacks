@@ -47,7 +47,7 @@ fun SyncAntiBlockScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
                 HudTopBar(title = "Sync & Anti-Block", onBack = onBack, accent = accent)
 
                 HudSectionLabel("Sync & Schedule", accent = accent, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent) {
                     Text("Check for new drops every", style = MaterialTheme.typography.bodyLarge)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SYNC_INTERVALS.forEach { hours ->
@@ -71,7 +71,7 @@ fun SyncAntiBlockScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
                     accent = accent,
                     modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 8.dp),
                 )
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent) {
                     Text(
                         text = "If a provider starts blocking requests, Repacks retries with a different " +
                             "device fingerprint and, if you've added any below, a different proxy. No " +
