@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,21 +67,19 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
-                            .clip(RepacksShapes.medium)
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .clip(RepacksShapes.small)
                             .background(accent)
                             .clickable {
                                 CustomTabsIntent.Builder().build().launchUrl(context, current.originalUrl.toUri())
                             }
-                            .padding(vertical = 16.dp),
+                            .padding(vertical = 11.dp),
                         horizontalArrangement = Arrangement.Center,
                     ) {
-                        Icon(Icons.Filled.OpenInBrowser, contentDescription = null, tint = MaterialTheme.colorScheme.background)
                         Text(
                             text = "OPEN ON ${providerName.uppercase()}",
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.background,
-                            modifier = Modifier.padding(start = 8.dp),
                         )
                     }
                 }
@@ -89,6 +87,7 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit) {
         },
     ) { padding ->
         if (current == null) return@Scaffold
+        val backgroundColor = MaterialTheme.colorScheme.background
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
@@ -98,29 +97,23 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
+                    // Clear at the top so the image itself reads as a hero shot, then bleeds
+                    // smoothly into the page background over the bottom third instead of a hard
+                    // edge — the title Column below is pulled up on top of that faded region.
                     Box(
                         modifier = Modifier.fillMaxSize().background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f)),
-                                startY = 0f,
+                                colorStops = arrayOf(0f to Color.Transparent, 0.55f to Color.Transparent, 1f to backgroundColor),
                             ),
                         ),
                     )
-                    IconButton(
-                        onClick = onBack,
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(12.dp)
-                            .clip(NeonChipShape)
-                            .background(Color.Black.copy(alpha = 0.5f)),
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = accent)
-                    }
+                }
+
+                Column(modifier = Modifier.fillMaxWidth().offset(y = (-28).dp).padding(horizontal = 16.dp)) {
                     Text(
                         text = current.title,
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        modifier = Modifier.align(Alignment.BottomStart).padding(16.dp),
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
 
@@ -160,6 +153,19 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit) {
 
                 // Room for the fixed bottom CTA button.
                 Box(modifier = Modifier.fillMaxWidth().size(72.dp))
+            }
+
+            // Pinned above the scrolling Column (not inside it) so it stays put instead of
+            // scrolling away with the hero image — this was the "back button" complaint.
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(12.dp)
+                    .clip(NeonChipShape)
+                    .background(Color.Black.copy(alpha = 0.5f)),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = accent)
             }
         }
     }

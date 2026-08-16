@@ -22,27 +22,39 @@ import com.phuzle.labs.repacks.BuildConfig
 import com.phuzle.labs.repacks.ui.components.HudBackdrop
 import com.phuzle.labs.repacks.ui.components.HudTopBar
 import com.phuzle.labs.repacks.ui.components.NeonPanel
+import com.phuzle.labs.repacks.ui.components.ToggleRow
 import com.phuzle.labs.repacks.ui.theme.NeonCyan
+import com.phuzle.labs.repacks.ui.theme.NeonCyanOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 @Composable
 fun UpdatesScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
     val updateState by viewModel.updateState.collectAsStateWithLifecycle()
+    val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val accent = themedAccent(NeonCyan, NeonCyanOnLight)
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize()) {
-                HudTopBar(title = "Updates", onBack = onBack, accent = NeonCyan)
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = NeonCyan, glow = false) {
+                HudTopBar(title = "Updates", onBack = onBack, accent = accent)
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
                     Text("Current version", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.titleMedium)
 
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp)) {
+                    ToggleRow(
+                        label = "Automatically check for updates",
+                        checked = prefs.autoUpdateCheckEnabled,
+                        onCheckedChange = viewModel::setAutoUpdateCheckEnabled,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
                         TextButton(onClick = viewModel::checkForUpdate, enabled = updateState !is UpdateCheckState.Checking) {
                             Text("Check for updates")
                         }
                         if (updateState is UpdateCheckState.Checking) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = NeonCyan)
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = accent)
                         }
                     }
 
@@ -56,7 +68,7 @@ fun UpdatesScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
                             Text(
                                 "Update ${state.info.versionName} is available.",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = NeonCyan,
+                                color = accent,
                             )
                             if (viewModel.updateInstaller.canRequestInstallPackages()) {
                                 TextButton(onClick = { viewModel.installUpdate(state.info.release) }) { Text("Download & install") }

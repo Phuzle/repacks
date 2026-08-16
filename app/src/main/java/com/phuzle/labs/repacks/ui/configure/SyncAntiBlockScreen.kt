@@ -31,20 +31,23 @@ import com.phuzle.labs.repacks.ui.components.HudTopBar
 import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.components.ToggleRow
 import com.phuzle.labs.repacks.ui.theme.NeonViolet
+import com.phuzle.labs.repacks.ui.theme.NeonVioletOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 private val SYNC_INTERVALS = listOf(1, 2, 6, 12)
 
 @Composable
 fun SyncAntiBlockScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
+    val accent = themedAccent(NeonViolet, NeonVioletOnLight)
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                HudTopBar(title = "Sync & Anti-Block", onBack = onBack, accent = NeonViolet)
+                HudTopBar(title = "Sync & Anti-Block", onBack = onBack, accent = accent)
 
-                HudSectionLabel("Sync & Schedule", accent = NeonViolet, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = NeonViolet, glow = false) {
+                HudSectionLabel("Sync & Schedule", accent = accent, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
                     Text("Check for new drops every", style = MaterialTheme.typography.bodyLarge)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SYNC_INTERVALS.forEach { hours ->
@@ -65,10 +68,10 @@ fun SyncAntiBlockScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
 
                 HudSectionLabel(
                     "Anti-Block",
-                    accent = NeonViolet,
+                    accent = accent,
                     modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 8.dp),
                 )
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = NeonViolet, glow = false) {
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
                     Text(
                         text = "If a provider starts blocking requests, Repacks retries with a different " +
                             "device fingerprint and, if you've added any below, a different proxy. No " +

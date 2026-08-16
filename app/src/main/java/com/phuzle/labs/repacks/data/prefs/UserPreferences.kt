@@ -17,6 +17,7 @@ data class UserPreferences(
     val autoRotateOnBlock: Boolean = true,
     val lastRotationStatus: String? = null,
     val lastUpdateCheckMillis: Long = 0L,
+    val autoUpdateCheckEnabled: Boolean = true,
 ) {
     /** Parsed, blank-filtered proxy entries — one per line of [proxyListRaw]. */
     val proxyList: List<String>

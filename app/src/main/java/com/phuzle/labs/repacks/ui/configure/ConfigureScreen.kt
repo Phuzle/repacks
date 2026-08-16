@@ -23,9 +23,14 @@ import androidx.compose.ui.unit.dp
 import com.phuzle.labs.repacks.ui.components.HudBackdrop
 import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.theme.NeonAcid
+import com.phuzle.labs.repacks.ui.theme.NeonAcidOnLight
 import com.phuzle.labs.repacks.ui.theme.NeonCyan
+import com.phuzle.labs.repacks.ui.theme.NeonCyanOnLight
 import com.phuzle.labs.repacks.ui.theme.NeonMagenta
+import com.phuzle.labs.repacks.ui.theme.NeonMagentaOnLight
 import com.phuzle.labs.repacks.ui.theme.NeonViolet
+import com.phuzle.labs.repacks.ui.theme.NeonVioletOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 private data class ConfigureCategory(
     val title: String,
@@ -38,13 +43,17 @@ private data class ConfigureCategory(
  * list): each tile opens its own dedicated screen. */
 @Composable
 fun ConfigureScreen(onNavigate: (route: String) -> Unit) {
+    val cyan = themedAccent(NeonCyan, NeonCyanOnLight)
+    val magenta = themedAccent(NeonMagenta, NeonMagentaOnLight)
+    val violet = themedAccent(NeonViolet, NeonVioletOnLight)
+    val acid = themedAccent(NeonAcid, NeonAcidOnLight)
     val categories = listOf(
-        ConfigureCategory("Providers", "Enable or disable release sources", NeonCyan, "configure/providers"),
-        ConfigureCategory("Filters & Watchlist", "NSFW filter, size cap, tracked titles", NeonMagenta, "configure/filters"),
-        ConfigureCategory("Sync & Anti-Block", "Schedule, Wi-Fi only, identity rotation", NeonViolet, "configure/sync"),
-        ConfigureCategory("Appearance", "Theme", NeonAcid, "configure/appearance"),
-        ConfigureCategory("Updates", "Check for and install new versions", NeonCyan, "configure/updates"),
-        ConfigureCategory("About & Disclaimers", "Attribution, license, source", NeonMagenta, "about"),
+        ConfigureCategory("Providers", "Enable or disable release sources", cyan, "configure/providers"),
+        ConfigureCategory("Filters & Watchlist", "NSFW filter, size cap, tracked titles", magenta, "configure/filters"),
+        ConfigureCategory("Sync & Anti-Block", "Schedule, Wi-Fi only, identity rotation", violet, "configure/sync"),
+        ConfigureCategory("Appearance", "Theme", acid, "configure/appearance"),
+        ConfigureCategory("Updates", "Check for and install new versions", cyan, "configure/updates"),
+        ConfigureCategory("About & Disclaimers", "Attribution, license, source", magenta, "about"),
     )
 
     HudBackdrop {

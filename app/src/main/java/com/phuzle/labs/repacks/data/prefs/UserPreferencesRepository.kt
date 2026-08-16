@@ -33,6 +33,7 @@ class UserPreferencesRepository(private val context: Context) {
         val AUTO_ROTATE_ON_BLOCK = booleanPreferencesKey("auto_rotate_on_block")
         val LAST_ROTATION_STATUS = stringPreferencesKey("last_rotation_status")
         val LAST_UPDATE_CHECK_MILLIS = longPreferencesKey("last_update_check_millis")
+        val AUTO_UPDATE_CHECK_ENABLED = booleanPreferencesKey("auto_update_check_enabled")
     }
 
     val preferencesFlow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
@@ -53,6 +54,7 @@ class UserPreferencesRepository(private val context: Context) {
             autoRotateOnBlock = prefs[Keys.AUTO_ROTATE_ON_BLOCK] ?: true,
             lastRotationStatus = prefs[Keys.LAST_ROTATION_STATUS],
             lastUpdateCheckMillis = prefs[Keys.LAST_UPDATE_CHECK_MILLIS] ?: 0L,
+            autoUpdateCheckEnabled = prefs[Keys.AUTO_UPDATE_CHECK_ENABLED] ?: true,
         )
     }
 
@@ -98,4 +100,6 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setLastUpdateCheckMillis(millis: Long) = context.dataStore.edit { it[Keys.LAST_UPDATE_CHECK_MILLIS] = millis }
+
+    suspend fun setAutoUpdateCheckEnabled(enabled: Boolean) = context.dataStore.edit { it[Keys.AUTO_UPDATE_CHECK_ENABLED] = enabled }
 }

@@ -22,24 +22,27 @@ import com.phuzle.labs.repacks.ui.components.HudBackdrop
 import com.phuzle.labs.repacks.ui.components.HudTopBar
 import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.theme.NeonMagenta
+import com.phuzle.labs.repacks.ui.theme.NeonMagentaOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
     val context = LocalContext.current
+    val accent = themedAccent(NeonMagenta, NeonMagentaOnLight)
     fun open(url: String) = CustomTabsIntent.Builder().build().launchUrl(context, url.toUri())
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                HudTopBar(title = "About & Disclaimers", onBack = onBack, accent = NeonMagenta)
+                HudTopBar(title = "About & Disclaimers", onBack = onBack, accent = accent)
 
                 NeonPanel(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    accent = NeonMagenta,
+                    accent = accent,
                     glow = false,
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("REPACKS", style = MaterialTheme.typography.titleLarge, color = NeonMagenta)
+                        Text("REPACKS", style = MaterialTheme.typography.titleLarge, color = accent)
                         Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                         Text(

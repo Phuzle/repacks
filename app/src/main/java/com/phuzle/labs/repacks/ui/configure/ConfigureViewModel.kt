@@ -77,6 +77,8 @@ class ConfigureViewModel(
 
     fun markNotificationPermissionRequested() = launchAndPersist { prefsRepository.setNotificationPermissionRequested(true) }
 
+    fun setAutoUpdateCheckEnabled(enabled: Boolean) = launchAndPersist { prefsRepository.setAutoUpdateCheckEnabled(enabled) }
+
     fun checkForUpdate() {
         viewModelScope.launch {
             _updateState.value = UpdateCheckState.Checking

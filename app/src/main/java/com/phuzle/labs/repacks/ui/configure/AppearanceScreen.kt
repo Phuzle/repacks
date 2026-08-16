@@ -20,16 +20,19 @@ import com.phuzle.labs.repacks.ui.components.HudBackdrop
 import com.phuzle.labs.repacks.ui.components.HudTopBar
 import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.theme.NeonAcid
+import com.phuzle.labs.repacks.ui.theme.NeonAcidOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 @Composable
 fun AppearanceScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
+    val accent = themedAccent(NeonAcid, NeonAcidOnLight)
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize()) {
-                HudTopBar(title = "Appearance", onBack = onBack, accent = NeonAcid)
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = NeonAcid, glow = false) {
+                HudTopBar(title = "Appearance", onBack = onBack, accent = accent)
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
                     Text("Theme", style = MaterialTheme.typography.bodyLarge)
                     listOf(
                         ThemeMode.SYSTEM to "System",

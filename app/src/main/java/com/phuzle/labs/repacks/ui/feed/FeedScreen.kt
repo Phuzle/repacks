@@ -1,5 +1,8 @@
 package com.phuzle.labs.repacks.ui.feed
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,8 +34,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.phuzle.labs.repacks.ui.components.FilterChipsRow
@@ -89,7 +95,11 @@ fun FeedScreen(
                             verticalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
                             items(items, key = { it.id }) { item ->
-                                RepackCard(item = item, onClick = { onItemClick(item.provider, item.slug) })
+                                RepackCard(
+                                    item = item,
+                                    onClick = { onItemClick(item.provider, item.slug) },
+                                    modifier = Modifier.animateItem(),
+                                )
                             }
                         }
                     }
@@ -101,8 +111,16 @@ fun FeedScreen(
 
 @Composable
 private fun FeedHeader(lastSyncedAt: Long?, isSyncing: Boolean, onRefresh: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "syncPulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(650), repeatMode = RepeatMode.Reverse),
+        label = "pulseAlpha",
+    )
+
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, top = 20.dp, bottom = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -112,6 +130,7 @@ private fun FeedHeader(lastSyncedAt: Long?, isSyncing: Boolean, onRefresh: () ->
                     modifier = Modifier
                         .width(8.dp)
                         .height(8.dp)
+                        .alpha(if (isSyncing) pulseAlpha else 1f)
                         .background(
                             if (isSyncing) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                             RoundedCornerShape(2.dp),
@@ -132,7 +151,7 @@ private fun FeedHeader(lastSyncedAt: Long?, isSyncing: Boolean, onRefresh: () ->
                 },
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 2.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 1.dp),
             )
         }
         if (isSyncing) {

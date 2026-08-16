@@ -41,11 +41,14 @@ import com.phuzle.labs.repacks.ui.components.NeonPanel
 import com.phuzle.labs.repacks.ui.components.ToggleRow
 import com.phuzle.labs.repacks.ui.components.rememberNotificationPermissionRequester
 import com.phuzle.labs.repacks.ui.theme.NeonMagenta
+import com.phuzle.labs.repacks.ui.theme.NeonMagentaOnLight
+import com.phuzle.labs.repacks.ui.theme.themedAccent
 
 @Composable
 fun FiltersWatchlistScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val watchlist by viewModel.watchlist.collectAsStateWithLifecycle()
+    val accent = themedAccent(NeonMagenta, NeonMagentaOnLight)
     val maybeRequestPermission = rememberNotificationPermissionRequester(
         alreadyRequested = prefs.notificationPermissionRequested,
         onMarkRequested = viewModel::markNotificationPermissionRequested,
@@ -54,10 +57,10 @@ fun FiltersWatchlistScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         HudBackdrop(modifier = Modifier.padding(padding)) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                HudTopBar(title = "Filters & Watchlist", onBack = onBack, accent = NeonMagenta)
+                HudTopBar(title = "Filters & Watchlist", onBack = onBack, accent = accent)
 
-                HudSectionLabel("Filter Engine", accent = NeonMagenta, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
-                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = NeonMagenta, glow = false) {
+                HudSectionLabel("Filter Engine", accent = accent, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
+                NeonPanel(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), accent = accent, glow = false) {
                     ToggleRow(
                         label = "Filter adult / NSFW content",
                         checked = prefs.nsfwFilterEnabled,
@@ -68,7 +71,7 @@ fun FiltersWatchlistScreen(viewModel: ConfigureViewModel, onBack: () -> Unit) {
 
                 HudSectionLabel(
                     "Watchlist",
-                    accent = NeonMagenta,
+                    accent = accent,
                     modifier = Modifier.padding(start = 20.dp, top = 24.dp, bottom = 8.dp),
                 )
                 WatchlistManager(

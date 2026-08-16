@@ -29,12 +29,14 @@ val RepacksTypography = Typography(
         lineHeight = 28.sp,
         letterSpacing = 1.sp,
     ),
+    // Default (system) family below, not Rajdhani: at reading sizes Rajdhani's condensed
+    // geometry reads thin/spindly and was called out as hard to read — the HUD identity now
+    // lives in titleLarge/titleSmall and the uppercase label styles instead, which stay short.
     titleMedium = TextStyle(
-        fontFamily = RajdhaniFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 18.sp,
         lineHeight = 23.sp,
-        letterSpacing = 0.2.sp,
+        letterSpacing = 0.1.sp,
     ),
     titleSmall = TextStyle(
         fontFamily = OrbitronFamily,
@@ -44,16 +46,14 @@ val RepacksTypography = Typography(
         letterSpacing = 1.5.sp,
     ),
     bodyLarge = TextStyle(
-        fontFamily = RajdhaniFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 17.sp,
-        lineHeight = 22.sp,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 23.sp,
     ),
     bodyMedium = TextStyle(
-        fontFamily = RajdhaniFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 20.sp,
+        fontSize = 14.5.sp,
+        lineHeight = 21.sp,
     ),
     labelLarge = TextStyle(
         fontFamily = RajdhaniFamily,
