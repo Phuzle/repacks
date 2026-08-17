@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Repacks</string>
+    <string name="title_activity_main">Repacks</string>
+    <string name="package_name">com.phuzle.labs.repacks</string>
+    <string name="custom_url_scheme">com.phuzle.labs.repacks</string>
+    <string name="notification_channel_drops_name">New Drops</string>
+    <string name="notification_channel_drops_description">Alerts when a monitored provider or watchlist title has a new repack</string>
+</resources>

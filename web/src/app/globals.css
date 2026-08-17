@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Color tokens mirror the Kotlin app's ui/theme/Color.kt + Theme.kt 1:1, so the
+ * web UI stays visually identical to what shipped natively. Three states:
+ *  - no [data-theme] attr -> "system": follows prefers-color-scheme, dark maps
+ *    to the Void palette (not Amoled) exactly like ThemeMode.SYSTEM in Kotlin.
+ *  - [data-theme="light"] -> Daylight palette, forced regardless of system.
+ *  - [data-theme="amoled"] -> Amoled palette, forced regardless of system.
+ */
+:root {
+  --background: #eff1fb; /* DaylightBackground */
+  --surface: #ffffff; /* DaylightSurface */
+  --surface-raised: #f3f4fc; /* DaylightSurfaceRaised */
+  --outline: #cbd0ee; /* DaylightOutline */
+  --text-primary: #12132b; /* TextOnDaylightPrimary */
+  --text-secondary: #585e82; /* TextOnDaylightSecondary */
+
+  --accent-cyan: #0086a8;
+  --accent-magenta: #c81e68;
+  --accent-violet: #7a2fd1;
+  --accent-acid: #6e8c00;
+  --accent-red: #d1223d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #060611; /* VoidBlack */
+    --surface: #0d0e1f; /* VoidSurface */
+    --surface-raised: #15172e; /* VoidSurfaceRaised */
+    --outline: #2a2d4d; /* VoidOutline */
+    --text-primary: #e7ecff; /* TextOnVoidPrimary */
+    --text-secondary: #8a90b8; /* TextOnVoidSecondary */
+
+    --accent-cyan: #00f0ff;
+    --accent-magenta: #ff2e88;
+    --accent-violet: #b14eff;
+    --accent-acid: #d4ff3e;
+    --accent-red: #ff3b5c;
+  }
+}
+
+:root[data-theme="amoled"] {
+  --background: #000000; /* AmoledBlack */
+  --surface: #090909; /* AmoledSurface */
+  --surface-raised: #090909;
+  --outline: #232323; /* AmoledOutline */
+  --text-primary: #e7ecff;
+  --text-secondary: #8a90b8;
+
+  --accent-cyan: #00f0ff;
+  --accent-magenta: #ff2e88;
+  --accent-violet: #b14eff;
+  --accent-acid: #d4ff3e;
+  --accent-red: #ff3b5c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-outline: var(--outline);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-magenta: var(--accent-magenta);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-acid: var(--accent-acid);
+  --color-accent-red: var(--accent-red);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
