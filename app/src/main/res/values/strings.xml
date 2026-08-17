@@ -1,5 +1,0 @@
-<resources>
-    <string name="app_name">Repacks</string>
-    <string name="notification_channel_drops_name">New Drops</string>
-    <string name="notification_channel_drops_description">Alerts when a monitored provider or watchlist title has a new repack</string>
-</resources>
